@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MGT101 Management Quiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0f172a',
+                            card: '#1e293b',
+                            border: '#334155',
+                            text: '#f1f5f9',
+                            muted: '#94a3b8'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Smooth transitions for dark mode */
+        body, div, button, p, span, h1, h2, h3, .bg-white, .bg-slate-50, .bg-slate-100, .text-slate-800, .text-slate-900, .border-slate-200 {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .chapter-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0, 1, 0, 1);
+        }
+        .chapter-content.open {
+            max-height: 50000px;
+            transition: max-height 0.5s ease-in-out;
+        }
+        .question-card {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.5s forwards;
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .option-btn {
+            transition: all 0.3s ease;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: translateX(8px);
+        }
+        .correct-answer {
+            background-color: #dcfce7 !important;
+            border-color: #22c55e !important;
+            color: #166534 !important;
+        }
+        .dark .correct-answer {
+            background-color: #14532d !important;
+            border-color: #22c55e !important;
+            color: #86efac !important;
+        }
+        .wrong-answer {
+            background-color: #fee2e2 !important;
+            border-color: #ef4444 !important;
+            color: #991b1b !important;
+        }
+        .dark .wrong-answer {
+            background-color: #7f1d1d !important;
+            border-color: #ef4444 !important;
+            color: #fca5a5 !important;
+        }
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+        
+        /* Dark mode specific overrides */
+        .dark body {
+            background: linear-gradient(to bottom right, #0f172a, #1e293b);
+        }
+        
+        /* Toggle switch animation */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #68D391;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #68D391;
+        }
+        
+        /* Sun/Moon icon animation */
+        .theme-icon {
+            transition: transform 0.5s ease, opacity 0.3s ease;
+        }
+        .dark .sun-icon {
+            transform: rotate(90deg) scale(0);
+            opacity: 0;
+        }
+        .dark .moon-icon {
+            transform: rotate(0) scale(1);
+            opacity: 1;
+        }
+        .sun-icon {
+            transform: rotate(0) scale(1);
+            opacity: 1;
+        }
+        .moon-icon {
+            transform: rotate(-90deg) scale(0);
+            opacity: 0;
+            position: absolute;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen text-slate-800 dark:from-dark-bg dark:to-slate-900 dark:text-dark-text transition-colors duration-300">
+
+    <!-- Header -->
+    <header class="bg-white/80 dark:bg-dark-card/80 backdrop-blur-md shadow-sm sticky top-0 z-50 border-b border-slate-200 dark:border-dark-border transition-colors duration-300">
+        <div class="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-600 dark:bg-indigo-500 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-indigo-200 dark:shadow-indigo-900/50">
+                    MGT
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-slate-900 dark:text-dark-text">Management Quiz</h1>
+                    <p class="text-xs text-slate-500 dark:text-dark-muted">MGT101 Test Bank - All Chapters</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <!-- Dark Mode Toggle -->
+                <button onclick="toggleDarkMode()" class="relative p-2 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-300 group" aria-label="Toggle Dark Mode">
+                    <div class="w-5 h-5 relative">
+                        <!-- Sun Icon -->
+                        <svg class="sun-icon w-5 h-5 text-amber-500 absolute inset-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <!-- Moon Icon -->
+                        <svg class="moon-icon w-5 h-5 text-indigo-400 absolute inset-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                    </div>
+                </button>
+
+                <div class="text-right">
+                    <div class="text-2xl font-bold text-indigo-600 dark:text-indigo-400" id="total-score">0%</div>
+                    <div class="text-xs text-slate-500 dark:text-dark-muted">Overall Score</div>
+                </div>
+            </div>
+        </div>
+        <div class="w-full bg-slate-200 dark:bg-slate-700 h-1">
+            <div class="progress-bar bg-indigo-600 dark:bg-indigo-500 h-full" id="overall-progress" style="width: 0%"></div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-4 py-8 space-y-4">
+
+        <!-- Chapter 1 -->
+        <div class="bg-white dark:bg-dark-card rounded-2xl shadow-sm border border-slate-200 dark:border-dark-border overflow-hidden transition-colors duration-300" data-chapter="1">
+            <button onclick="toggleChapter(1)" class="w-full px-6 py-5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-200 dark:shadow-blue-900/50 group-hover:scale-110 transition-transform">
+                        01
+                    </div>
+                    <div class="text-left">
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-dark-text">Introduction to Management and Organizations</h2>
+                        <p class="text-sm text-slate-500 dark:text-dark-muted">50 Questions • Managers, Efficiency, Functions & Skills</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-medium text-slate-600 dark:text-dark-muted chapter-score">0/50</span>
+                    <svg class="w-5 h-5 text-slate-400 dark:text-slate-500 transform transition-transform chapter-arrow" id="arrow-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+            </button>
+            <div class="chapter-content bg-slate-50/50 dark:bg-slate-900/30" id="chapter-1">
+                <div class="p-6 space-y-4" id="questions-1"></div>
+            </div>
+        </div>
+
+        <!-- Chapter 2 -->
+        <div class="bg-white dark:bg-dark-card rounded-2xl shadow-sm border border-slate-200 dark:border-dark-border overflow-hidden transition-colors duration-300" data-chapter="2">
+            <button onclick="toggleChapter(2)" class="w-full px-6 py-5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-emerald-200 dark:shadow-emerald-900/50 group-hover:scale-110 transition-transform">
+                        02
+                    </div>
+                    <div class="text-left">
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-dark-text">Managers as Decision Makers</h2>
+                        <p class="text-sm text-slate-500 dark:text-dark-muted">50 Questions • Decision Making Process, Rationality & Types</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-medium text-slate-600 dark:text-dark-muted chapter-score">0/50</span>
+                    <svg class="w-5 h-5 text-slate-400 dark:text-slate-500 transform transition-transform chapter-arrow" id="arrow-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+            </button>
+            <div class="chapter-content bg-slate-50/50 dark:bg-slate-900/30" id="chapter-2">
+                <div class="p-6 space-y-4" id="questions-2"></div>
+            </div>
+        </div>
+
+        <!-- Chapter 3 -->
+        <div class="bg-white dark:bg-dark-card rounded-2xl shadow-sm border border-slate-200 dark:border-dark-border overflow-hidden transition-colors duration-300" data-chapter="3">
+            <button onclick="toggleChapter(3)" class="w-full px-6 py-5 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-500 to-violet-600 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-violet-200 dark:shadow-violet-900/50 group-hover:scale-110 transition-transform">
+                        03
+                    </div>
+                    <div class="text-left">
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-dark-text">Foundations of Planning</h2>
+                        <p class="text-sm text-slate-500 dark:text-dark-muted">50 Questions • Planning Types, Goals & MBO</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm font-medium text-slate-600 dark:text-dark-muted chapter-score">0/50</span>
+                    <svg class="w-5 h-5 text-slate-400 dark:text-slate-500 transform transition-transform chapter-arrow" id="arrow-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </div>
+            </button>
+            <div class="chapter-content bg-slate-50/50 dark:bg-slate-900/30" id="chapter-3">
+                <div class="p-6 space-y-4" id="questions-3"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Dark Mode Logic
+        function initDarkMode() {
+            // Check for saved preference or system preference
+            const savedTheme = localStorage.getItem('theme');
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const isDark = html.classList.contains('dark');
+            
+            if (isDark) {
+                html.classList.remove('dark');
+                localStorage.setItem('theme', 'light');
+            } else {
+                html.classList.add('dark');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        // Initialize dark mode on load
+        initDarkMode();
+
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                if (e.matches) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+        });
+
+        // Quiz Data
+        const quizData = {
+            1: [
+                {q: "Someone who works with and through other people by coordinating their work activities in order to accomplish organizational goals is", options: ["an assembly line worker", "a laborer", "a manager", "a salesperson"], answer: 2},
+                {q: "In the past, nonmanagerial employees were viewed as employees who ________.", options: ["reported to top executives", "reported to middle managers", "supervised others", "had no others reporting to them"], answer: 3},
+                {q: "Which of the following types of managers is responsible for making organization-wide decisions and establishing the plans and goals that affect the entire organization?", options: ["first-line managers", "top managers", "production managers", "research managers"], answer: 1},
+                {q: "All levels of management between the supervisory level and the top level of the organization are termed", options: ["middle managers", "first-line managers", "supervisors", "foremen"], answer: 0},
+                {q: "Which of the following levels of management is associated with positions such as executive vice president, chief operating officer, chief executive officer, and chairman of the board?", options: ["team leaders", "middle managers", "first-line managers", "top managers"], answer: 3},
+                {q: "Agency head or plant manager is most likely associated with which of the following?", options: ["team leaders", "middle managers", "first-line managers", "top managers"], answer: 1},
+                {q: "The lowest level of management is", options: ["a nonmanagerial employee", "a department of research manager", "a vice president", "a first-line manager"], answer: 3},
+                {q: "Supervisor is another name for which of the following?", options: ["team leader", "middle manager", "first-line manager", "top manager"], answer: 2},
+                {q: "Managers with titles such as regional manager, project leader, or plant manager are", options: ["first-line managers", "top managers", "production managers", "middle managers"], answer: 3},
+                {q: "Which of the following best reflects the management structure of a traditional organization?", options: ["pyramid", "circle", "hub with spokes", "infinite line"], answer: 0},
+                {q: "Division manager is associated with which of the following levels of management?", options: ["team leaders", "middle managers", "first-line managers", "top managers"], answer: 1},
+                {q: "________ is the process of getting activities completed efficiently and effectively with and through other people.", options: ["Leading", "Management", "Supervision", "Controlling"], answer: 1},
+                {q: "The distinction between a managerial position and a nonmanagerial position is", options: ["planning the work of others", "coordinating the work of others", "controlling the work of others", "organizing the work of others"], answer: 1},
+                {q: "Which of the following is an example of an efficient manufacturing technique?", options: ["cutting inventory levels", "increasing the amount of time to manufacture products", "increasing product reject rates", "decreasing product output"], answer: 0},
+                {q: "Wasting resources is considered to be an example of", options: ["efficiency", "effectiveness", "inefficiency", "ineffectiveness"], answer: 2},
+                {q: "An automobile manufacturer that increased the total number of cars produced at the same cost, but with many defects, would be", options: ["efficient and effective", "increasing efficiency", "increasing effectiveness", "concerned with inputs"], answer: 1},
+                {q: "Effectiveness is synonymous with", options: ["cost minimization", "resource control", "goal attainment", "efficiency"], answer: 2},
+                {q: "Efficiency refers to", options: ["the relationship between inputs and outputs", "the additive relationship between costs and benefits", "the exponential nature of costs and outputs", "increasing outputs regardless of cost"], answer: 0},
+                {q: "In successful organizations,", options: ["low efficiency and high effectiveness go hand in hand", "high efficiency and low effectiveness go hand in hand", "high efficiency and high effectiveness go hand in hand", "high efficiency and high equity go hand in hand"], answer: 2},
+                {q: "Whereas ________ is concerned with the means of getting things done, ________ is concerned with the ends, or attainment of organizational goals.", options: ["effectiveness; efficiency", "efficiency; effectiveness", "effectiveness; goal attainment", "goal attainment; efficiency"], answer: 1},
+                {q: "How many management functions were originally proposed in the early part of the twentieth century?", options: ["three", "four", "five", "nine"], answer: 2},
+                {q: "________ was a French industrialist who first identified the basic management functions.", options: ["Weber", "Taylor", "Herzberg", "Fayol"], answer: 3},
+                {q: "Today, the basic management functions are considered to be", options: ["planning, coordinating, staffing, and directing", "planning, organizing, leading, and directing", "commanding, organizing, leading, and staffing", "planning, organizing, leading, and controlling"], answer: 3},
+                {q: "Which of the following management functions from the mid-1950s is no longer included in the basic functions of management?", options: ["planning", "staffing", "leading", "controlling"], answer: 1},
+                {q: "Writing an organizational strategic plan is an example of the ________ management function.", options: ["leading", "coordinating", "planning", "organizing"], answer: 2},
+                {q: "Organizing includes", options: ["defining organizational goals", "hiring organizational members", "motivating organizational members", "determining who does what tasks"], answer: 3},
+                {q: "A manager resolving conflict among organizational members is performing what function?", options: ["controlling", "commanding", "directing", "leading"], answer: 3},
+                {q: "The process of monitoring, comparing, and correcting is called", options: ["controlling", "coordinating", "leading", "organizing"], answer: 0},
+                {q: "________ developed a categorization scheme for defining what managers do, consisting of 10 different but highly interrelated roles.", options: ["Henri Fayol", "Henry Ford", "Henry Mintzberg", "Henry Morris"], answer: 2},
+                {q: "According to Mintzberg's management roles, the ________ roles are those that involve people and other duties that are ceremonial and symbolic in nature.", options: ["informational", "interpersonal", "technical", "decisional"], answer: 1},
+                {q: "The roles of disseminator, figurehead, negotiator, liaison, and spokesperson are more important at the ________ levels of the organization.", options: ["lower", "middle", "higher", "supervisory"], answer: 2},
+                {q: "Which of the following is not an example of a decisional role according to Mintzberg?", options: ["spokesperson", "entrepreneur", "disturbance handler", "resource allocator"], answer: 0},
+                {q: "A human resource manager attending a local Society for Human Resource Management meeting would be functioning in which role?", options: ["informational", "leader", "liaison", "disseminator"], answer: 2},
+                {q: "A finance manager who reads the Wall Street Journal on a regular basis would be performing which role?", options: ["figurehead", "monitor", "disseminator", "interpersonal"], answer: 1},
+                {q: "The ________ role is more important for lower-level managers than it is for either middle or top-level managers.", options: ["leader", "entrepreneur", "spokesperson", "disseminator"], answer: 0},
+                {q: "Which of the following is not an example of an interpersonal role according to Mintzberg?", options: ["figurehead", "leader", "liaison", "spokesperson"], answer: 3},
+                {q: "According to Mintzberg's management roles, the ________ roles involve receiving, collecting, and disseminating information.", options: ["interpersonal", "informational", "technical", "decisional"], answer: 1},
+                {q: "All of the following are examples of informational roles according to Mintzberg except", options: ["liaison", "monitor", "disseminator", "spokesperson"], answer: 0},
+                {q: "Which of the following is not an example of a decisional role according to Mintzberg?", options: ["spokesperson", "entrepreneur", "disturbance handler", "resource allocator"], answer: 0},
+                {q: "All of the following are managerial roles that are more important at the higher levels of the organization except ________.", options: ["leader", "disseminator", "figurehead", "negotiator"], answer: 0},
+                {q: "Which of the following represents the most useful way of describing the manager's job?", options: ["roles", "functions", "skills", "organizational level"], answer: 1},
+                {q: "Which of the following individuals identified the three essential managerial skills?", options: ["Katz", "Lewisberg", "Raines", "Chambers"], answer: 0},
+                {q: "The three essential managerial skills include", options: ["technical, human, and empirical", "human, empirical, and conceptual", "technical, interpersonal, and controlling", "technical, human, and conceptual"], answer: 3},
+                {q: "Which of the following is true concerning technical and managerial skills?", options: ["Human skills and technical skills remain equally important as managers move to higher levels.", "Technical-skill needs remain necessary and human skills decrease as managers move to higher levels.", "Human skills remain necessary and technical-skill needs decrease as managers move to higher levels.", "Both human-skill and technical-skill needs decrease as managers move to higher levels."], answer: 2},
+                {q: "Managers with good ________ are able to communicate, motivate and lead to get the best out of their people.", options: ["human skills", "conceptual skills", "technical skills", "visual skills"], answer: 0},
+                {q: "Technical skills include ________.", options: ["leadership and efficiency in a certain specialized field", "knowledge of and proficiency in a certain specialized field", "familiarity with and interest in a general field of endeavor", "skill and interest in a general field of endeavor"], answer: 1},
+                {q: "Which of the following types of skills are described with terms such as abstract situations and visualization?", options: ["interpersonal", "human", "technical", "conceptual"], answer: 3},
+                {q: "Which one of the following phrases is best associated with managerial conceptual skills?", options: ["decision making", "communicating with customers", "using information to solve business problems", "product knowledge"], answer: 2},
+                {q: "Budgeting is associated with the management functions of planning and", options: ["directing", "organizing", "leading", "controlling"], answer: 3},
+                {q: "Mentoring is primarily associated with the management function of ________.", options: ["planning", "organizing", "leading", "controlling"], answer: 2}
+            ],
+            2: [
+                {q: "Decision making is typically described as ________, which is a view that is too simplistic.", options: ["deciding what is correct", "putting preferences on paper", "choosing among alternatives", "processing information to completion"], answer: 2},
+                {q: "A series of eight steps that begins with identifying a problem and concludes with evaluating the decision's effectiveness is the", options: ["decision-making process", "managerial process", "maximin style", "bounded rationality approach"], answer: 0},
+                {q: "________ is the existence of a discrepancy between an existing and a desired state of affairs.", options: ["An opportunity", "A solution", "A weakness", "A problem"], answer: 3},
+                {q: "In identifying the problem, a manager", options: ["compares the current state of affairs with where they would like to be", "expects problems to be defined by neon lights", "looks for discrepancies that can be postponed", "will not act when there is pressure to make a decision"], answer: 0},
+                {q: "Which of the following statements is true concerning problem identification?", options: ["Problems are generally obvious.", "A symptom and a problem are basically the same.", "Well-trained managers generally agree on what is considered a problem.", "The problem must be such that it exerts some type of pressure on the manager to act."], answer: 3},
+                {q: "What is the second step in the decision-making process?", options: ["identifying decision criteria", "allocating weights to the criteria", "analyzing alternatives", "identifying a problem"], answer: 0},
+                {q: "To determine the ________, a manager must determine what is relevant or important to resolving the problem.", options: ["geocentric behavior needed", "number of allowable alternatives", "weighting of decision criteria", "decision criteria"], answer: 3},
+                {q: "What is the third step in the decision-making process?", options: ["allocating weights to the criteria", "analyzing the alternatives", "selecting the best alternative", "implementing the alternative"], answer: 0},
+                {q: "If all criteria in the decision making are equal, weighting the criteria", options: ["improves decision making when large numbers of criteria are involved", "is not needed", "produces excellent decisions", "improves the criteria"], answer: 1},
+                {q: "What is the step where a decision maker wants to be creative in coming up with possible alternatives?", options: ["allocating weights to the criteria", "analyzing alternatives", "developing alternatives", "identifying decision criteria"], answer: 2},
+                {q: "When analyzing alternatives, what becomes evident?", options: ["the strengths and weaknesses of each alternative", "the weighting of alternatives", "the list of alternatives", "the problem"], answer: 0},
+                {q: "When developing alternatives in the decision-making process, what must a manager do?", options: ["list alternatives", "evaluate alternatives", "weight alternatives", "implement alternatives"], answer: 0},
+                {q: "Selecting an alternative in the decision-making process is accomplished by", options: ["choosing the alternative with the highest score", "choosing the one you like best", "selecting the alternative that has the lowest price", "selecting the alternative that is the most reliable"], answer: 0},
+                {q: "________ includes conveying a decision to those affected and getting their commitment to it.", options: ["Selecting an alternative", "Evaluating the decision effectiveness", "Implementing the alternatives", "Analyzing alternatives"], answer: 2},
+                {q: "The final step in the decision-making process is to", options: ["pick the criteria for the next decision", "reevaluate the weightings of the criteria until they indicate the correct outcome", "evaluate the outcome of the decision", "reassign the ratings on the criteria to find different outcomes"], answer: 2},
+                {q: "Managers are assumed to be ________; they make consistent, value-maximizing choices within specified constraints.", options: ["rational", "leaders", "organized", "satisficers"], answer: 0},
+                {q: "It is assumed that a perfectly rational decision maker", options: ["does not follow rational assumptions", "does not consider value maximizing as an objective", "offers inconsistent decisions", "would be objective and logical"], answer: 3},
+                {q: "Managers can make rational decisions if", options: ["the problem is ambiguous", "the goals are unclear", "the alternatives are limited", "time constraints exist"], answer: 2},
+                {q: "Which of the following is not a valid assumption about rationality?", options: ["The problem is clear and unambiguous.", "A single, well-defined goal is to be achieved.", "Preferences are clear.", "Preferences are constantly changing."], answer: 3},
+                {q: "When managers circumvent the rational decision-making model and find ways to satisfice, they are following the concept of ________.", options: ["jurisprudence", "bounded rationality", "least-squared exemptions", "self-motivated decisions"], answer: 1},
+                {q: "Because managers can't possibly analyze all information on all alternatives, managers ________, rather than ________.", options: ["maximize; satisfice", "maximize; minimize", "satisfice; minimize", "satisfice; maximize"], answer: 3},
+                {q: "The type of decision making in which the solution is considered 'good enough' is known as", options: ["intuition", "satisfying", "maximizing", "satisficing"], answer: 3},
+                {q: "When a decision maker chooses an alternative under perfect rationality, she ________ her decision, whereas under bounded rationality she chooses a ________ decision.", options: ["minimizes; satisficing", "satisfices; maximizing", "maximizes; satisficing", "maximizes; minimizing"], answer: 2},
+                {q: "An increased commitment to a previous decision despite evidence that it may have been wrong is referred to as", options: ["economies of commitment", "escalation of commitment", "dimensional commitment", "expansion of commitment"], answer: 1},
+                {q: "Intuitive decision making is", options: ["not utilized in organizations", "a conscious process based on accumulated judgment", "making decisions based on experience, feelings, and accumulated judgment", "important in supporting escalation of commitment"], answer: 2},
+                {q: "In studying intuitive decision making, researchers have found that", options: ["managers do not make decisions based on feelings or emotions", "managers use data from their subconscious mind to help make their decisions", "rational thinking always works better than intuitive", "accumulated experience does not support intuitive decisions"], answer: 1},
+                {q: "All of the following are aspects of intuition except", options: ["experienced-based decisions", "affect-initiated decisions", "cognitive-based decisions", "programmed decisions"], answer: 3},
+                {q: "________ are straightforward, familiar, and easily structured.", options: ["Unstructured problems", "Structured problems", "Unique problems", "Nonprogrammed problems"], answer: 1},
+                {q: "Structured problems align well with which type of decision making?", options: ["programmed", "satisficing", "intuition", "gut feeling"], answer: 0},
+                {q: "________ decision making is relatively simple and tends to rely heavily on previous decisions.", options: ["Nonprogrammed", "Linear", "Satisficing", "Programmed"], answer: 3},
+                {q: "A procedure ________.", options: ["is an explicit statement detailing exactly how to deal with a decision", "is a series of interrelated sequential steps to respond to a structured problem", "is a set of guidelines that channel a manager's thinking in dealing with a problem", "allows a manager to use broad decision-making authority"], answer: 1},
+                {q: "A ________ is an explicit statement that tells a manager what he or she can or cannot do.", options: ["procedure", "policy", "rule", "solution"], answer: 2},
+                {q: "A policy ________.", options: ["typically contains an ambiguous term", "is used frequently when a manager faces a structured problem", "allows little discretion on the part of the manager", "offers strict rules as to how a problem should be solved"], answer: 0},
+                {q: "What is a difference between a policy and a rule?", options: ["A policy establishes parameters.", "A rule establishes parameters.", "A policy is more explicit.", "A rule is more ambiguous."], answer: 0},
+                {q: "A ________ typically contains an ambiguous term that leaves interpretation up to the decision maker.", options: ["system", "rule", "solution", "policy"], answer: 3},
+                {q: "A business school's statement that it 'strives for productive relationships with local organizations' is an example of a ________.", options: ["rule", "policy", "procedure", "commitment"], answer: 1},
+                {q: "Unstructured problems", options: ["are easily solved", "present familiar circumstances", "force managers to deal with incomplete or ambiguous information", "are routine"], answer: 2},
+                {q: "Nonprogrammed decisions are best described as", options: ["recurring, but difficult to make", "very similar to problems in other areas of the organization", "requiring more aggressive action on the decision maker's thought processes", "unique and nonrecurring"], answer: 3},
+                {q: "When problems are ________, managers must rely on ________ in order to develop unique solutions.", options: ["structured; nonprogrammed decision making", "structured; pure intuition", "unstructured; nonprogrammed decision making", "unstructured; programmed decision making"], answer: 2},
+                {q: "Lower-level managers typically confront what type of decision making?", options: ["unique", "nonroutine", "programmed", "nonprogrammed"], answer: 2},
+                {q: "Which of the following is likely to make the most programmed decisions?", options: ["the CEO of PepsiCo", "the vice president of General Motors Cadillac Division", "the head of the Minute Maid Division at Coca-Cola", "the manager of the local McDonald's"], answer: 3},
+                {q: "In which step does a decision maker want to be creative in coming up with possible alternatives?", options: ["allocating weights to the criteria", "analyzing alternatives", "developing alternatives", "identifying decision criteria"], answer: 2},
+                {q: "When developing alternatives in the decision-making process, what must a manager do?", options: ["list alternatives", "evaluate alternatives", "weight alternatives", "implement alternatives"], answer: 0},
+                {q: "When analyzing alternatives, what becomes evident?", options: ["the strengths and weaknesses of each alternative", "the weighting of alternatives", "the list of alternatives", "the problem"], answer: 0},
+                {q: "Selecting an alternative in the decision-making process is accomplished by", options: ["choosing the alternative with the highest score", "choosing the one you like best", "selecting the alternative that has the lowest price", "selecting the alternative that is the most reliable"], answer: 0},
+                {q: "________ is a situation in which a manager can make accurate decisions because the outcome of every alternative is known.", options: ["Certainty", "Risk", "Uncertainty", "Maximax", "Maximin"], answer: 0},
+                {q: "________ is a situation in which a decision maker has neither certainty nor reasonable probability estimates available.", options: ["Certainty", "Risk", "Uncertainty", "Maximax"], answer: 2},
+                {q: "Nonprogrammed decisions are typically made under a condition of", options: ["certainty", "low levels of risk", "uncertainty", "reliability"], answer: 2},
+                {q: "Decision makers using what decision-making style make fast decisions and focus on the short run?", options: ["directive", "behavioral", "analytic", "conceptual"], answer: 0},
+                {q: "What types are characterized as careful decision makers with the ability to adapt or cope with unique situations?", options: ["directive decision makers", "behavioral decision makers", "analytic decision makers", "conceptual decision makers"], answer: 2}
+            ],
+            3: [
+                {q: "Planning involves defining the organization's goals, establishing an overall strategy for achieving those goals, and developing a comprehensive set of plans", options: ["as to which shift will perform what work functions", "to determine which manager will be in charge of which department", "for organizational work activities", "to establish the quality and quantity of work to be accomplished"], answer: 2},
+                {q: "In informal planning, ________ sharing of goals with others in the organization.", options: ["everything may be written down, but there is little or no", "everything is written down, and there is", "nothing is written down, and there is little or no", "nothing is written down; therefore management does a lot of"], answer: 2},
+                {q: "Informal planning is", options: ["performed at the lowest organizational level", "general and lacks continuity", "developed in informal meetings at a resort", "specific and is developed by the middle managers for their department"], answer: 1},
+                {q: "In formal planning,", options: ["specific goals covering a period of years are defined", "specific goals are developed and not written", "general goals are developed and not written", "general goals covering an unspecified period of years are defined"], answer: 0},
+                {q: "Formal planning involves which of the following aspects?", options: ["developing general objectives", "planning for up to one year", "writing objectives", "distributing the plan to all managerial employees"], answer: 2},
+                {q: "The effect of planning on managers is that it forces them to", options: ["react to change", "consider the impact of change", "respond indiscriminately", "develop bureaucratic response models"], answer: 1},
+                {q: "Planning can't eliminate change. Managers plan in order to", options: ["be prepared for when changes in management at the top occurs", "anticipate changes and develop the most effective response to changes", "decide what needs to be done when a change in environments happen", "have the appropriate materials available when the demand for them comes about"], answer: 1},
+                {q: "Planning gives direction, reduces the impact of change, minimizes waste and redundancy, and", options: ["establishes the workloads for each of the departments", "sets the basis used for promotion of individuals within the organization", "eliminates departments that are not needed within the plan", "sets the standards used in controlling"], answer: 3},
+                {q: "Studies of performance in organizations that plan have reached", options: ["somewhat negative conclusions regarding the benefits of planning", "generally mixed conclusions regarding the benefits of planning", "generally negative conclusions regarding the benefits of planning", "generally positive conclusions regarding the benefits of planning"], answer: 3},
+                {q: "The quality of the planning process and the appropriate implementation of the plans probably", options: ["don't contribute to high performance nearly as much as the extent of planning", "contribute more to high performance than does the extent of planning", "contribute less to high performance than does the extent of planning", "should be studied more to factually determine which contributes the most"], answer: 1},
+                {q: "In studies in which formal planning did not lead to higher performance, ________.", options: ["the external environment often was the culprit", "management's execution of the plans was most often the reason for failure", "employees' implementation of the plans was the primary reason for failure", "lack of communication was most often the reason for failure"], answer: 0},
+                {q: "Planning is often called the primary management function because it", options: ["offers some basis for future decision making", "creates the vision for the organizational members to work toward", "establishes the basis for all the other functions", "sets the tone for the organizational culture"], answer: 2},
+                {q: "Planning involves two important elements:", options: ["goals and decisions", "goals and plans", "plans and decisions", "goals and actions"], answer: 1},
+                {q: "Goals are objectives,", options: ["and we use the two terms interchangeably", "but goals are long term, and objectives are short term", "but goals are used by top management, and objectives are used by first-level management", "but goals are used in reference to profits, and objectives are used in reference to production output"], answer: 0},
+                {q: "Plans are documents that outline how goals are going to be met and", options: ["define which department has what responsibilities needed to accomplish the goals", "tell what materials and processes are necessary to fulfill the goals", "identify how much capital is required to complete the goals", "describe resource allocations, schedules, and other necessary actions to accomplish the goals"], answer: 3},
+                {q: "________ can evaluate whether an organization is successful.", options: ["A goal is the only measure that", "No single measure", "Plans are also a measure that", "Stakeholders are the only groups that"], answer: 1},
+                {q: "When managers emphasize one goal, they", options: ["assure that the one goal will be accomplished even above the established level", "ignore other goals that must also be reached if long-term success is to achieved", "make the goal easier to be accomplished by all organizational members", "deny the organizational members the opportunity to grow and develop"], answer: 1},
+                {q: "Using a single objective can result in unethical practices because managers", options: ["want to satisfy the stockholders of the organization", "will manipulate the outcomes reported to assure that the one objective is achieved", "will ignore other important parts of their jobs in order to look good on that one measure", "will use overtime to accomplish that single objective without reporting it"], answer: 2},
+                {q: "Official statements of what an organization says and what it wants its various stakeholders to believe are referred to as", options: ["real goals", "stated goals", "committed goals", "comprehensive goals"], answer: 1},
+                {q: "The conflict in stated goals exists because organizations respond to a variety of ________.", options: ["stakeholders", "external environments", "governmental regulations", "stockholders"], answer: 0},
+                {q: "The most common ways to describe organizational plans are by their frequency of use, time frame, specificity, and", options: ["quantifiability", "flexibility", "breadth", "attainability"], answer: 2},
+                {q: "When we categorize plans as being directional versus specific, we are categorizing them by", options: ["breadth", "specificity", "frequency of use", "depth"], answer: 1},
+                {q: "When we categorize plans as being single-use versus standing, we categorize them by", options: ["breadth", "specificity", "frequency of use", "time frame"], answer: 2},
+                {q: "Strategic plans are plans that apply to the entire organization, establish the organization's overall goals, and", options: ["guide the organization toward maximizing organizational profits for the stockholders", "attempt to satisfy all government regulations while maximizing profits", "satisfy the organization's stakeholders", "seek to position the organization in terms of its environment"], answer: 3},
+                {q: "Operational plans specify the details of", options: ["what department performs which functional process to accomplish the goals", "what materials are required for which product being produced", "when each product model is to be produced", "how the overall goals are to be achieved"], answer: 3},
+                {q: "Strategic plans tend to cover a longer period of time than operational goals and also", options: ["cover a more narrow view of the organization", "cover the financial projections of the planning period", "cover a broader view of the organization", "include an estimate of the profits that the stockholder can anticipate as dividends"], answer: 2},
+                {q: "Strategic plans include the formulation of goals, whereas operational plans define ways to", options: ["maximize the organization's profits", "achieve the goals", "minimize the number of employees that have to be laid off in hard times", "provide the most efficient methods of production"], answer: 1},
+                {q: "As organizational environments have become more uncertain", options: ["organizations are having to make longer term plans", "organizations have to resist the uncertainties to keep the plans moving toward the objectives", "organizations have to request that the government pass more legislation restricting the amount of uncertainty", "the definition of long term has changed"], answer: 3},
+                {q: "Specific plans are clearly defined and", options: ["allow managers to interpret their 'flexibility' on their own", "leave no room for interpretation", "give the managers authority to interpret the plans for their area of responsibility", "keep the stakeholders informed of the organization's objectives"], answer: 1},
+                {q: "Directional plans", options: ["have clearly defined objectives", "identify general guidelines", "meet the needs of a unique situation", "last for 3-5 years"], answer: 1},
+                {q: "The flexibility inherent in directional plans must be weighed against the", options: ["gain of a shorter planning period provided by specific plans", "gain of a longer planning period provided by specific plans", "loss of clarity provided by specific plans", "loss of a shorter planning period provided by specific plans"], answer: 2},
+                {q: "________ is a one-time plan specifically designed to meet the needs of a unique situation.", options: ["A multipurpose plan", "A strategic plan", "An operational plan", "A single-use plan"], answer: 3},
+                {q: "Standing plans are ongoing plans that provide", options: ["general directions of how to accomplish an identifiable task", "stakeholders with identifiable goals that the organization will always strive to achieve", "the stockholders with identifiable goals that the organization will always strive to achieve", "guidance for activities performed repeatedly"], answer: 3},
+                {q: "Goals provide the direction for all management decisions and actions and form the ________.", options: ["profit basis that the organizations will accomplish for stockholders", "desired outcomes that the organizational members will achieve", "basis for the sharing of profits with the employees at the end", "criteria against which actual accomplishments are measured"], answer: 3},
+                {q: "With traditional goal setting, the goals are set at the top level of management and", options: ["then they become the responsibility of first-line management to achieve the goals", "then they are broken down into subgoals for each level of the organization", "all the efforts to achieve the goals are directed by top management to ensure that they are achieved", "then they are delegated to the next lower level to be achieved"], answer: 1},
+                {q: "With traditional goal setting, the assumption is that", options: ["top managers know what is best because they see the 'big picture'", "top managers are unfamiliar with setting goals, so lower-level managers are assigned to do the task", "lower-level managers understand more of what needs to be accomplished", "lower-level managers are incapable of setting goals"], answer: 0},
+                {q: "With traditional goal setting, employees' work efforts at their respective levels and work areas are geared to meet the goals", options: ["so that the top management will be retained in their position", "so that their immediate supervisors will be retained in their position", "that have been assigned in their specific areas of responsibility", "within the shortest amount of time possible"], answer: 2},
+                {q: "What happens to traditional goals as they make their way down from top management to lower levels?", options: ["They lose clarity and unity.", "They unite the workforce.", "Lower-level managers must continually revise and correct them.", "They purposely remain vague and unclear."], answer: 0},
+                {q: "When the hierarchy of organizational goals is clearly defined, it forms a", options: ["hierarchical-link chain", "means-ends chain", "weakest-link chain", "level-level chain"], answer: 1},
+                {q: "Management by objectives (MBO) is a management system in which the first step is setting specific performance goals that are", options: ["established that can be easily accomplished", "jointly determined by employees and their managers", "determined by top management with clarity so that the objectives are clear to even the most incompetent employee", "developed in such a manner that the employees are self-directed and do not need supervision"], answer: 1},
+                {q: "What is the first step in a typical MBO program?", options: ["Major objectives are allocated among divisional and departmental units.", "Unit managers collaboratively set specific objectives for their units with their managers.", "The organization's overall objectives and strategies are formulated.", "Action plans are specified and agreed upon by managers and employees."], answer: 2},
+                {q: "In the MBO system,", options: ["objectives are determined by management", "goals are only reviewed at the time of completion", "goals are used as controls", "progress toward objectives is periodically reviewed"], answer: 3},
+                {q: "One of the potential problems of MBO programs is that", options: ["there may be an overemphasis by the employee on accomplishing his or her goals without regard to others in the work unit", "they may be more effective in times of dynamic environmental change", "employees take goal setting too seriously", "they encourage filling out paperwork"], answer: 0},
+                {q: "A well-designed goal should be", options: ["short and very specific about expected outcomes", "written in terms of outcomes rather than actions", "identifiable to even the first-line supervisors", "specific and within a manageable time frame"], answer: 1},
+                {q: "A well-designed goal should be ________.", options: ["discussed at orientation", "nearly unattainable, so that even if the unit or employee misses the goal, performance is still very high", "easy to achieve", "clear as to a time frame"], answer: 3},
+                {q: "What is the purpose of an organization called?", options: ["the organization's action plan", "the organization's mission", "the organization's vision", "the organization's contingency plan"], answer: 1},
+                {q: "In the traditional approach to planning, planning was done entirely by top-level managers who were often assisted by ________.", options: ["business level managers", "functional level managers", "a mixture of managers from the line, functional, and business level", "a group of planning specialists"], answer: 3},
+                {q: "What is a frequently cited criticism of formal planning?", options: ["Plans can't be developed for a dynamic environment.", "Formal planning is too time consuming, given the dynamism in modern business environments.", "Formal planning creates extra, often redundant levels of hierarchy within the organization.", "Formal planning works well only for large, diversified companies."], answer: 0},
+                {q: "In an uncertain environment, managers want to develop ________ plans.", options: ["general and flexible", "specific but flexible", "formal", "contingency"], answer: 1},
+                {q: "Formal plans serve as a roadmap although the destination may be changing constantly due to", options: ["dynamic market conditions", "political changes", "management changes", "employment makeup"], answer: 0}
+            ]
+        };
+
+        let scores = {1: 0, 2: 0, 3: 0};
+        let answered = {1: 0, 2: 0, 3: 0};
+
+        function toggleChapter(chapterNum) {
+            const content = document.getElementById(`chapter-${chapterNum}`);
+            const arrow = document.getElementById(`arrow-${chapterNum}`);
+            const isOpen = content.classList.contains('open');
+            
+            // Close all chapters
+            document.querySelectorAll('.chapter-content').forEach(el => el.classList.remove('open'));
+            document.querySelectorAll('.chapter-arrow').forEach(el => el.style.transform = 'rotate(0deg)');
+            
+            if (!isOpen) {
+                content.classList.add('open');
+                arrow.style.transform = 'rotate(180deg)';
+                loadQuestions(chapterNum);
+            }
+        }
+
+        function loadQuestions(chapterNum) {
+            const container = document.getElementById(`questions-${chapterNum}`);
+            if (container.children.length > 0) return; // Already loaded
+            
+            const questions = quizData[chapterNum];
+            questions.forEach((q, idx) => {
+                const card = document.createElement('div');
+                card.className = 'question-card bg-white dark:bg-dark-card rounded-xl p-6 shadow-sm border border-slate-200 dark:border-dark-border transition-colors duration-300';
+                card.style.animationDelay = `${idx * 0.05}s`;
+                
+                const labels = ['A', 'B', 'C', 'D', 'E'];
+                
+                card.innerHTML = `
+                    <div class="flex gap-4 mb-4">
+                        <span class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold flex items-center justify-center text-sm transition-colors duration-300">
+                            ${idx + 1}
+                        </span>
+                        <p class="text-slate-800 dark:text-dark-text font-medium leading-relaxed transition-colors duration-300">${q.q}</p>
+                    </div>
+                    <div class="space-y-2 ml-12" id="options-${chapterNum}-${idx}">
+                        ${q.options.map((opt, optIdx) => `
+                            <button onclick="selectAnswer(${chapterNum}, ${idx}, ${optIdx}, this)" 
+                                class="option-btn w-full text-left px-4 py-3 rounded-lg border border-slate-200 dark:border-dark-border hover:border-indigo-300 dark:hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 text-slate-700 dark:text-slate-300 text-sm transition-all duration-300"
+                                data-idx="${optIdx}">
+                                <span class="font-semibold mr-2 text-slate-500 dark:text-slate-400">${labels[optIdx]}.</span>
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="ml-12 mt-3 hidden" id="feedback-${chapterNum}-${idx}">
+                        <div class="p-3 rounded-lg text-sm font-medium"></div>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        function selectAnswer(chapter, qIdx, selectedIdx, btnElement) {
+            const question = quizData[chapter][qIdx];
+            const correctIdx = question.answer;
+            const optionsContainer = document.getElementById(`options-${chapter}-${qIdx}`);
+            const feedbackDiv = document.getElementById(`feedback-${chapter}-${qIdx}`);
+            
+            // Check if already answered
+            if (optionsContainer.dataset.answered === 'true') return;
+            optionsContainer.dataset.answered = 'true';
+            
+            // Disable all buttons
+            const buttons = optionsContainer.querySelectorAll('button');
+            buttons.forEach(btn => btn.disabled = true);
+            
+            // Mark correct/incorrect
+            if (selectedIdx === correctIdx) {
+                btnElement.classList.add('correct-answer');
+                feedbackDiv.innerHTML = '<div class="p-3 rounded-lg text-sm font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800 transition-colors duration-300">✓ Correct! Well done.</div>';
+                scores[chapter]++;
+            } else {
+                btnElement.classList.add('wrong-answer');
+                buttons[correctIdx].classList.add('correct-answer');
+                feedbackDiv.innerHTML = '<div class="p-3 rounded-lg text-sm font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800 transition-colors duration-300">✗ Incorrect. The correct answer is highlighted.</div>';
+            }
+            
+            answered[chapter]++;
+            updateScores();
+            
+            feedbackDiv.classList.remove('hidden');
+        }
+
+        function updateScores() {
+            // Update chapter scores
+            [1, 2, 3].forEach(chapter => {
+                const total = quizData[chapter].length;
+                const score = scores[chapter];
+                const chapterEl = document.querySelector(`[data-chapter="${chapter}"]`);
+                chapterEl.querySelector('.chapter-score').textContent = `${score}/${total}`;
+            });
+            
+            // Update overall score
+            const totalQuestions = Object.values(quizData).reduce((a, b) => a + b.length, 0);
+            const totalAnswered = Object.values(answered).reduce((a, b) => a + b, 0);
+            const totalCorrect = Object.values(scores).reduce((a, b) => a + b, 0);
+            
+            const percentage = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+            document.getElementById('total-score').textContent = `${percentage}%`;
+            document.getElementById('overall-progress').style.width = `${(totalAnswered / totalQuestions) * 100}%`;
+        }
+
+        // Initialize
+        updateScores();
+        
+        // Open first chapter by default
+        toggleChapter(1);
+    </script>
+</body>
+</html>
